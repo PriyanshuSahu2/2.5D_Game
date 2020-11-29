@@ -43,13 +43,8 @@ public class CubeMovement : MonoBehaviour
         horizontal = Input.GetAxis("Horizontal");
         ApplyMovement();
         Jump();
-    }
-
-    private void ApplyMovement() //----Applying Movement---//
-    {
-        if (isGrounded)
+        if(!isGrounded && Input.GetAxis("Horizontal") != 0f)
         {
-            Debug.Log($"Space:{Input.GetKey(KeyCode.Space)}");
             if (horizontal > 0)
             {
                 transform.rotation = Quaternion.Euler(0, 90, 0);
@@ -59,8 +54,25 @@ public class CubeMovement : MonoBehaviour
                 transform.rotation = Quaternion.Euler(0, -90, 0);
             }
             transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
-
         }
+    }
+
+    private void ApplyMovement() //----Applying Movement---//
+    {
+        Debug.Log($"Space:{Input.GetKey(KeyCode.Space)}");
+        if( !Input.GetKey(KeyCode.Space) && isGrounded)
+        {
+            if (horizontal > 0)
+            {
+                transform.rotation = Quaternion.Euler(0, 90, 0);
+            }
+            if (horizontal < 0)
+            {
+                transform.rotation = Quaternion.Euler(0, -90, 0);
+            }
+            transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
+        }
+        
     }
 
     void Jump() //------Jump---//
@@ -68,6 +80,7 @@ public class CubeMovement : MonoBehaviour
         
         if (Input.GetKey(KeyCode.Space) && isGrounded)
         {
+            
             JumpForce += 20;
             Debug.Log($"JumpFOrce{JumpForce}");
         }
@@ -79,9 +92,28 @@ public class CubeMovement : MonoBehaviour
             {
                 JumpForce = MaxJumpForce;
             }
+
             rb.AddForce(transform.up * JumpForce);
+
+        
+
+
+            if(Input.GetAxis("Horizontal") != 0f)
+            {
+                if (horizontal > 0)
+                {
+                    transform.rotation = Quaternion.Euler(0, 90, 0);
+                }
+                if (horizontal < 0)
+                {
+                    transform.rotation = Quaternion.Euler(0, -90, 0);
+                }
+            }
+            
+            
             //   rb.AddForce(new Vector3(500f, JumpForce, 0));
             // rb.AddRelativeForce(transform.up * JumpForce);
+            
             JumpForce = MinJumpForce;
         }
         if (rb.velocity.y < -0.9f)
@@ -92,5 +124,11 @@ public class CubeMovement : MonoBehaviour
         {
             Physics.gravity = new Vector3(0, -9.81f, 0);
         }
+        /*IEnumerator mov()
+        {
+            Debug.Log("waiting");
+            yield return new WaitForSeconds(2f);
+            transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
+        }*/
     }
 }
