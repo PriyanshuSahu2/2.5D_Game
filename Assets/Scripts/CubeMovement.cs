@@ -20,12 +20,16 @@ public class CubeMovement : MonoBehaviour
     [SerializeField] bool isGrounded;
     [SerializeField] float distanceFromGround = 1f;
     [SerializeField] Transform GroundChecker;
+    [SerializeField] Transform GroundChecker1;
+    [SerializeField] Transform GroundChecker2;
     [SerializeField] float maxFallingSpeed = 40f;
+    [SerializeField] float increasJumpForceOverTime = 0.7f;
     [HideInInspector]
     [SerializeField] float direction;
     [SerializeField] LayerMask ground;
     [HideInInspector]
     [SerializeField] Animator anim;
+    private bool canJump = true;
     RaycastHit hit;
     #endregion
     void Start()
@@ -37,98 +41,41 @@ public class CubeMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-        isGrounded = Physics.Raycast(GroundChecker.position, Vector3.down, 1f, ground);
-        Debug.DrawRay(GroundChecker.position * 1f, Vector3.down, Color.red);
         horizontal = Input.GetAxis("Horizontal");
-        ApplyMovement();
-        Jump();
-        if(!isGrounded && Input.GetAxis("Horizontal") != 0f)
+        isGrounded = IsGrouned();
+
+        if (isGrounded && Input.GetKey(KeyCode.Space)== false)
         {
-            if (horizontal > 0)
-            {
-                transform.rotation = Quaternion.Euler(0, 90, 0);
-            }
-            if (horizontal < 0)
-            {
-                transform.rotation = Quaternion.Euler(0, -90, 0);
-            }
-            transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
+            rb.velocity = new Vector2(horizontal * Speed, rb.velocity.y);
+        }
+        if(Input.GetKey(KeyCode.Space) && isGrounded && canJump)
+        {
+            JumpForce+=increasJumpForceOverTime;
+        }
+        if(JumpForce >= 20f && isGrounded)
+        {
+            float tempX = horizontal * Speed;
+            float tempY = MaxJumpForce;           
+            rb.velocity = new Vector2(tempX, tempY);
+            JumpForce = 0f;
+        }
+        if(Input.GetKeyUp(KeyCode.Space) && isGrounded)
+        {
+            rb.velocity = new Vector2(horizontal * Speed, JumpForce);
+            JumpForce = 0f;
         }
     }
 
-    private void ApplyMovement() //----Applying Movement---//
+    private bool IsGrouned()
     {
-        Debug.Log($"Space:{Input.GetKey(KeyCode.Space)}");
-        if( !Input.GetKey(KeyCode.Space) && isGrounded)
+        Debug.DrawRay(GroundChecker.position, Vector3.down);
+        Debug.DrawRay(GroundChecker1.position, Vector3.down);
+        Debug.DrawRay(GroundChecker2.position, Vector3.down);
+        if (Physics.Raycast(GroundChecker.position, Vector3.down, 1f) || Physics.Raycast(GroundChecker1.position, Vector3.down, 1f) || Physics.Raycast(GroundChecker2.position, Vector3.down, 1f))
         {
-            if (horizontal > 0)
-            {
-                transform.rotation = Quaternion.Euler(0, 90, 0);
-            }
-            if (horizontal < 0)
-            {
-                transform.rotation = Quaternion.Euler(0, -90, 0);
-            }
-            transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
+            return true;
         }
-        
-    }
-
-    void Jump() //------Jump---//
-    {
-        
-        if (Input.GetKey(KeyCode.Space) && isGrounded)
-        {
-            
-            JumpForce += 20;
-            Debug.Log($"JumpFOrce{JumpForce}");
-        }
-
-        if (Input.GetKeyUp(KeyCode.Space) && isGrounded)
-        {
-
-            if (JumpForce >= MaxJumpForce)
-            {
-                JumpForce = MaxJumpForce;
-            }
-
-            rb.AddForce(transform.up * JumpForce);
-
-        
-
-
-            if(Input.GetAxis("Horizontal") != 0f)
-            {
-                if (horizontal > 0)
-                {
-                    transform.rotation = Quaternion.Euler(0, 90, 0);
-                }
-                if (horizontal < 0)
-                {
-                    transform.rotation = Quaternion.Euler(0, -90, 0);
-                }
-            }
-            
-            
-            //   rb.AddForce(new Vector3(500f, JumpForce, 0));
-            // rb.AddRelativeForce(transform.up * JumpForce);
-            
-            JumpForce = MinJumpForce;
-        }
-        if (rb.velocity.y < -0.9f)
-        {
-            Physics.gravity = new Vector3(0, -9.81f * maxFallingSpeed, 0); ;
-        }
-        else if (rb.velocity.y >= 0f)
-        {
-            Physics.gravity = new Vector3(0, -9.81f, 0);
-        }
-        /*IEnumerator mov()
-        {
-            Debug.Log("waiting");
-            yield return new WaitForSeconds(2f);
-            transform.Translate(horizontal * Time.deltaTime * Speed, 0, 0, Space.World);
-        }*/
+        else
+            return false;
     }
 }
