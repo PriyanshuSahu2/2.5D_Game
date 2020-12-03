@@ -1,21 +1,56 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     [SerializeField] GameObject[] cam;
     [SerializeField] GameObject player;
     public float yPos;
     [SerializeField] float[] yTriggerCam;
+    private LineRenderer ln;
+    [SerializeField] GameObject resumeBtn;
+    [SerializeField] GameObject resume;
+    [SerializeField] EventSystem eventSystem;
+    
+    private void Start()
+    {
+        resumeBtn.SetActive(false);
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+        
+    }
     private void Update()
     {
+        
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            
+            if(resumeBtn.activeSelf)
+            {
+                Cursor.visible = false;
+                resumeBtn.SetActive(false);
+                Time.timeScale = 1f;
+            }
+            else
+            {
+                resumeBtn.SetActive(true);
+                Cursor.visible = true;
+                
+                Cursor.lockState = CursorLockMode.Confined;
+                eventSystem.firstSelectedGameObject = resume;
+                Time.timeScale = 0f;
+            }
+            
+        }
         if (player == null) return;
         yPos = player.transform.position.y;
         if (yPos == null) return;
         if(yPos <=yTriggerCam[0] )
         {
-            Debug.Log("true");
+            
             
             cam[6].SetActive(false);
             cam[7].SetActive(false);
@@ -94,6 +129,14 @@ public class GameManager : MonoBehaviour
             cam[0].SetActive(false);
         }
     }
-
-
+    public void ResumeBtn()
+    {
+        Time.timeScale = 1f;
+        resumeBtn.SetActive(false);
+    }
+    public void quit()
+    {
+        Time.timeScale = 1f;
+       UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(0);
+    }
 }

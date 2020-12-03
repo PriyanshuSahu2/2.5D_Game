@@ -13,7 +13,7 @@ public class CubeMovement : MonoBehaviour
     [SerializeField] Rigidbody rb;
     [HideInInspector]
     [SerializeField]float horizontal;
-    [SerializeField] float JumpForce;
+    [SerializeField] float JumpForce = .5f;
     [SerializeField] float MinJumpForce = 200f;
     [SerializeField] float MaxJumpForce = 600f;
     [HideInInspector]
@@ -29,13 +29,18 @@ public class CubeMovement : MonoBehaviour
     [SerializeField] LayerMask ground;
     [HideInInspector]
     [SerializeField] Animator anim;
+    [SerializeField] float scaleOverTime =1;
     private bool canJump = true;
+    private AudioSource audio;
+    [SerializeField] AudioClip[] audioClips;
     RaycastHit hit;
     #endregion
-    void Start()
+
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         anim = GetComponent<Animator>();
+        audio = GetComponent<AudioSource>();
     }
 
     // Update is called once per frame
@@ -46,23 +51,40 @@ public class CubeMovement : MonoBehaviour
 
         if (isGrounded && Input.GetKey(KeyCode.Space)== false)
         {
+
             rb.velocity = new Vector2(horizontal * Speed, rb.velocity.y);
         }
         if(Input.GetKey(KeyCode.Space) && isGrounded && canJump)
         {
-            JumpForce+=increasJumpForceOverTime;
+            JumpForce+=increasJumpForceOverTime*Time.deltaTime;
+            scaleOverTime -= 0.5f * Time.deltaTime;
+            transform.localScale = new Vector3(1, scaleOverTime, 1);
+            if(!audio.isPlaying)
+                audio.PlayOneShot(audioClips[0]);
+
+
+
         }
-        if(JumpForce >= 20f && isGrounded)
+        if(JumpForce >= MaxJumpForce && isGrounded)
         {
+
+            
             float tempX = horizontal * Speed;
-            float tempY = MaxJumpForce;           
-            rb.velocity = new Vector2(tempX, tempY);
-            JumpForce = 0f;
+            float tempY = MaxJumpForce;
+            scaleOverTime = 1;
+            transform.localScale = new Vector3(1, 1, 1);
+            rb.velocity = new Vector2(tempX * 1.5f, tempY);
+            JumpForce = .5f;
+           
         }
-        if(Input.GetKeyUp(KeyCode.Space) && isGrounded)
+        if(Input.GetKeyUp(KeyCode.Space) && isGrounded && JumpForce <= MaxJumpForce)
         {
-            rb.velocity = new Vector2(horizontal * Speed, JumpForce);
-            JumpForce = 0f;
+            audio.PlayOneShot(audioClips[1]);
+            scaleOverTime = 1;
+            transform.localScale = new Vector3(1, 1, 1);
+            rb.velocity = new Vector2(horizontal * Speed * 1.5f, JumpForce);
+            JumpForce = .5f;
+            
         }
     }
 
